@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bestcars
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: bestcars}
+  template:
+    metadata:
+      labels: {app: bestcars}
+    spec:
+      # Educational sandbox: all four services share a pod network.
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports: [{containerPort: 27017}]
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+        - name: api
+          image: us.icr.io/sn-labs-u241957/bestcars-api:d01e315
+          env:
+            - {name: MONGO_URL, value: "mongodb://127.0.0.1:27017/dealershipsDB"}
+          ports: [{containerPort: 3030}]
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 300m, memory: 192Mi}
+        - name: sentiment
+          image: us.icr.io/sn-labs-u241957/bestcars-sentiment:d01e315
+          ports: [{containerPort: 5050}]
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 300m, memory: 192Mi}
+        - name: web
+          image: us.icr.io/sn-labs-u241957/bestcars-web:d01e315
+          env:
+            - {name: backend_url, value: "http://127.0.0.1:3030"}
+            - {name: sentiment_analyzer_url, value: "http://127.0.0.1:5050"}
+            - name: CSRF_TRUSTED_ORIGINS
+              value: "https://u241957-8001.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai"
+          ports: [{containerPort: 8000}]
+          readinessProbe:
+            httpGet: {path: /djangoapp/session, port: 8000, httpHeaders: [{name: Host, value: localhost}]}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: bestcars}
+spec:
+  selector: {app: bestcars}
+  ports:
+    - {name: web, port: 8000, targetPort: 8000}
+    - {name: api, port: 3030, targetPort: 3030}
+    - {name: sentiment, port: 5050, targetPort: 5050}
