@@ -45,3 +45,5 @@ Eight Django tests cover public pages, CSRF enforcement, registration/session es
 ## AI acknowledgement
 
 OpenAI Codex assisted with implementing and reviewing the application, writing tests and deployment configuration, and diagnosing build failures on 21 October 2026. The application was checked by running the tests and production frontend build. No user claim of independently writing the generated code is made in this repository.
+
+The About Us portraits are fictional images generated using OpenAI imagegen on 2026-10-21. Prompt: three distinct professional headshots in equal square panels for fictional staff Alex Morgan (sales), Jordan Lee (service), and Taylor Brooks (customer experience), consistent light gray backgrounds, natural light, no text or logos. The generated asset is server/frontend/static/team-portraits.png; CSS selects each panel. No generated image is used as execution evidence.
